@@ -1,0 +1,61 @@
+--@name VertexLitGeneric
+--@author Essyrev
+--@client
+
+
+
+local TEXT = "I'am a hologramm!"
+
+
+
+
+
+
+
+
+
+
+render.createRenderTarget("test")
+local mat = material.create("VertexLitGeneric") ---VertexLitGeneric
+mat:setTextureRenderTarget("$basetexture", "test")
+local FPS = 15
+mat:setInt("$flags",128) --128
+
+local center = holograms.create(chip():localToWorld(Vector(0,0,75)),chip():getAngles(),"models/cheeze/pcb2/pcb8.mdl", Vector(1))
+center:setParent(chip())
+local font = render.createFont("Arial",35)
+
+local function rendertarget()
+    render.selectRenderTarget("test")
+    render.clear()
+
+    render.setFont(font)
+    render.drawText(512,512,TEXT,1)
+                
+    render.setRenderTargetTexture("test")
+    hook.remove("renderoffscreen", "render_view")  
+end
+
+
+timer.create("createTexture",1/FPS,0,function()
+    hook.add("renderoffscreen", "render_view", function()
+        rendertarget()
+    end)
+end)
+
+
+hook.add("renderoffscreen", "", function()
+    
+    render.setColor(Color(255,255,255,255))
+    render.setMaterial(mat)
+    render.drawTexturedRect(0,0,1024,1024)
+    center:setMaterial("!"..mat:getName())
+    
+    
+    local ang = (player():getPos() - center:getPos()):getAngle()
+    ang[1] = 90
+    --print( ang[2] )
+    center:setAngles( ang )
+    
+    
+end)
