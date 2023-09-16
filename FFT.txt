@@ -1,0 +1,91 @@
+--@name FFT-RENDERTARGET
+--@author
+--@client
+
+
+local FPS = 15
+local scale = 25
+local ResX, ResY, RTx, RTy
+local HSV = Color((timer.curtime()*10)%360, 1, 1):hsvToRGB()
+local IMG = "https://media.discordapp.net/attachments/1127210651010482287/1127217093134254180/63.png?width=1214&height=683"
+
+
+local math = math
+local hook = hook
+local render = render
+local timer = timer
+local material = material
+local bass = bass
+local Color = Color
+
+
+    local mat = material.create("gmodscreenspace") ---VertexLitGeneric
+                 render.createRenderTarget("test")
+mat:setTextureRenderTarget("$basetexture", "test")
+
+
+local background = material.create("gmodscreenspace") ---VertexLitGeneric
+
+background = render.createMaterial(IMG,function(_,_,ww,hh) w=ww h=hh end)
+local HSV = {}
+for i = 1, 53 do
+    HSV[i] = Color((timer.curtime()*25)%360-180, 1, 1):hsvToRGB()
+end     local number = 1
+
+local url = bass.loadURL("https://cdn.discordapp.com/attachments/1127210502725062750/1127222445208772658/GAYAZOV_BROTHER_-_MALINOVAYA_LADA.mp3","3d noblock",function(snd)
+    snd:setPos(chip():getPos())
+    snd:play()
+    snd:setVolume(0.25)
+    
+    local function rendertarget()
+        
+        fft = snd:getFFT(5)
+        local clr = 2
+        if ResX == nil or fft == nil then return end
+        render.selectRenderTarget("test")
+        render.clear()
+
+        --HSV = Color((timer.curtime()*25)%360-180, 1, 1):hsvToRGB()
+        local hclr = HSV[number]
+        --print(clr)
+        number = number + 1
+        if number > #HSV then number = 1 end
+        
+        render.setColor(    Color(hclr['r']/2 ,hclr["g"]/2  ,hclr['b']/2    ))
+        render.drawRectFast(0,0,ResX,ResY)
+        
+        if fft[1] == nil then return end
+        for i=1,ResX/scale + 1 do
+            if i%2 == 0 then 
+                clr = 256-256*fft[i]^0.3
+            end
+            render.setColor(Color(clr,255,255))
+            --render.drawLine(i*25,512,i*25,512-512*fft[i]^0.6)
+            render.drawRectFast(     (i-0.5)*scale-scale/2,512,scale,(fft[i]^0.6)*-512      )
+        end
+    
+
+        render.drawText(0,0,"Rendertarget update delay: "..FPS.." times per second / quota"..math.round(math.floor(quotaAverage()*1000000,0)),0)
+        render.setRenderTargetTexture("test")
+        hook.remove("renderoffscreen", "render_view")
+    end
+
+
+    timer.create("createTexture",1/FPS,0,function()
+        hook.add("renderoffscreen", "render_view",rendertarget)
+    end)
+
+    hook.add("render","",function()
+        if ResX == nil then 
+            ResX, ResY = render.getResolution() 
+            RTx = ( 1024 / ResX ) * ResX
+            RTy = ( 1024 / ResY ) * ResY
+        end
+
+        render.setMaterial(mat)
+        render.drawTexturedRect(0,0,RTx,RTy)
+    end)
+
+end)
+
+
