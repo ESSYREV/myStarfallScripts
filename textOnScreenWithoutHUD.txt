@@ -14,7 +14,7 @@ local TEXT = "Text on screen test"
 
 
 render.createRenderTarget("test")
-local mat = material.create("VertexLitGeneric") ---VertexLitGeneric
+local mat = material.create("UnlitGeneric") ---VertexLitGeneric
 mat:setTextureRenderTarget("$basetexture", "test")
 local FPS = 15
 mat:setInt("$flags",128) --128
