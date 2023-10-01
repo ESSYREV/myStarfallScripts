@@ -1,0 +1,75 @@
+--@name DIESEL GENERATOR
+--@author Essyrev
+--@shared
+--@model models/props_vehicles/generatortrailer01.mdl
+
+local default_fuel_amount = 100
+local fuel_loss_rate = 1
+
+
+if CLIENT then
+    
+    --local holo = holograms.create(chip():localToWorld(Vector(0,-25,45)),chip():getAngles() + Angle(0,0,90), "models/hunter/plates/plate025x025.mdl", Vector(5,1,1))
+    --holo:setParent(center)
+
+    local hologram = {}
+    for i=1,10 do
+
+        local holo = holograms.create(chip():localToWorld(Vector(5 - i*2,-25,45)),chip():getAngles() + Angle(0,0,90), "models/hunter/plates/plate025x025.mdl", Vector(0.1,1,1))
+        holo:setParent(center)
+        holo:setMaterial("models/ihvtest/eyeball_r")
+        hologram[i] = holo
+
+    end
+
+    timer.create("fuel",0.5,0,function()
+        local scale = chip():getSkin()
+        if scale == nil then return end
+        
+        local count = scale
+    
+
+        for i=1, 10 do
+            if i <= count then
+                hologram[i]:setColor(Color(240, 230, 140,255))
+            else
+                hologram[i]:setColor(Color(240, 230, 140,0))
+            end
+        end
+
+    end)
+    
+end
+if CLIENT then return end
+
+    wire.adjustOutputs({"IsEnable","Brightsness","GeneratorPitch","StopEngine"},{"Number","Number","Number","Number"})
+    wire.ports.IsEnable = 1
+    wire.ports.GeneratorPitch = 75
+
+    wire.ports.StopEngine = 0
+
+
+    
+    chip():setMaterial("0")
+    
+    local fuel = default_fuel_amount
+    local percent = (fuel/default_fuel_amount) * 100
+    
+    timer.create("fuel",0.1,0,function()
+        fuel = fuel - fuel_loss_rate
+        
+        local percent = math.floor( (fuel/default_fuel_amount) * 10 )
+        chip():setSkin( percent )
+        
+        if percent < 0.1 then
+             wire.ports.IsEnable = 0 
+            wire.ports.StopEngine = 1
+        else 
+            wire.ports.IsEnable = 1
+            wire.ports.StopEngine = 0
+        end
+    end)
+    
+debug = holograms.create(chip():getPos(),chip():getAngles(),"models/props_vehicles/generatortrailer01.mdl",Vector(1))
+debug:setParent(chip())
+chip():setColor(Color(0,0,0,0))
