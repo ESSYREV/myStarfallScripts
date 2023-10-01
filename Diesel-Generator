@@ -5,6 +5,7 @@
 
 local default_fuel_amount = 100
 local fuel_loss_rate = 1
+local addition = 25
 
 
 if CLIENT then
@@ -57,6 +58,7 @@ if CLIENT then return end
     
     timer.create("fuel",0.1,0,function()
         fuel = fuel - fuel_loss_rate
+        if fuel < 0 then fuel = 0 end
         
         local percent = math.floor( (fuel/default_fuel_amount) * 10 )
         chip():setSkin( percent )
@@ -69,6 +71,25 @@ if CLIENT then return end
             wire.ports.StopEngine = 0
         end
     end)
+    
+    hook.add("tick","fuel-restore",function(ent)
+        local fnd = find.byModel("models/props_c17/canister02a.mdl")
+        for i=1,#fnd do
+            if fnd[i]:getPos():getDistance(chip():getPos()) < 100 then
+                
+                if (fuel+addition) > default_fuel_amount then return breake end
+                
+                fnd[i]:remove()
+                fuel = fuel + addition 
+                
+                local percent = math.floor( (fuel/default_fuel_amount) * 10 )
+                chip():setSkin( percent )             
+            end 
+        end
+    end)
+    
+    
+    
     
 debug = holograms.create(chip():getPos(),chip():getAngles(),"models/props_vehicles/generatortrailer01.mdl",Vector(1))
 debug:setParent(chip())
